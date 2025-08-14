@@ -4,6 +4,9 @@ import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
     test:{
-        environment:'jsdom'
+        environment:'jsdom',
+        globals:true,
+        // ⬇️ This shall run before every test file
+        setupFiles:'tests/setup.ts'
     }
 })
