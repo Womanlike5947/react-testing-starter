@@ -22,8 +22,6 @@ describe('UserAccount', () => {
 	test('should render edit button if user is admin', () => {
 		render(<UserAccount user={{ ...user, isAdmin: true }} />);
 
-		screen.debug();
-
 		const button = screen.getByRole('button');
 
 		expect(button).toBeInTheDocument();
