@@ -4,28 +4,35 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 describe('TermsAndConditions', () => {
-	// #region render
-	beforeEach(() => {
+	// #region Render
+	const renderComponent = () => {
 		render(<TermsAndConditions />);
-	});
+		return {
+			heading: screen.getByRole('heading'),
+			checkbox: screen.getByRole('checkbox'),
+			button: screen.getByRole('button'),
+		};
+	};
 	// #endregion
 
 	// #region Initial Render
 	describe('initial render', () => {
 		test('should render with correct heading', () => {
-			const header = screen.getByRole('heading', { name: 'Terms & Conditions' });
-			expect(header).toBeInTheDocument();
+			const { heading } = renderComponent();
+
+			expect(heading).toBeInTheDocument();
+			expect(heading).toHaveTextContent('Terms & Conditions');
 		});
 
 		test('should render an unchecked checkbox upon the initial render', () => {
-			const checkbox = screen.getByRole('checkbox');
+			const { checkbox } = renderComponent();
 
 			expect(checkbox).toBeInTheDocument();
 			expect(checkbox).not.toBeChecked();
 		});
 
 		test('should render disabled submit button when checkbox is not checked', () => {
-			const button = screen.getByRole('button');
+			const { button } = renderComponent();
 
 			expect(button).toBeInTheDocument();
 			expect(button).toHaveTextContent(/submit/i);
@@ -37,12 +44,13 @@ describe('TermsAndConditions', () => {
 	// #region User Interactions
 	describe('User Interactions', () => {
 		test('should enable the button when the checkbox is checked', async () => {
-			const checkbox = screen.getByRole('checkbox');
+			const { checkbox, button } = renderComponent();
+
 			const user = userEvent.setup();
 
 			await user.click(checkbox);
 
-			expect(screen.getByRole('button')).toBeEnabled();
+			expect(button).toBeEnabled();
 		});
 	});
 	// #endregion
