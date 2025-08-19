@@ -23,7 +23,7 @@ describe('OrderStatusSelector', () => {
 		};
 	};
 
-	test('should render New as the default value', async () => {
+	test('should render New as the default value', () => {
 		const { trigger } = renderComponent();
 		expect(trigger).toHaveTextContent(/new/i);
 	});
