@@ -1,5 +1,18 @@
 import '@testing-library/jest-dom/vitest';
 import ResizeObserver from 'resize-observer-polyfill';
+import { server } from './mocks/server';
+
+beforeAll(() => {
+	server.listen();
+});
+
+afterEach(() => {
+	server.resetHandlers();
+});
+
+afterAll(() => {
+	server.close();
+});
 
 /** Stops the ResizeObserver error displaying */
 global.ResizeObserver = ResizeObserver;
@@ -12,7 +25,7 @@ window.HTMLElement.prototype.releasePointerCapture = vi.fn();
 // Needed because the success message in ToastDemo is rendered within the a node environment instead of the browser
 Object.defineProperty(window, 'matchMedia', {
 	writable: true,
-	value: vi.fn().mockImplementation((query) => ({
+	value: vi.fn().mockImplementation((query: string) => ({
 		matches: false,
 		media: query,
 		onchange: null,
