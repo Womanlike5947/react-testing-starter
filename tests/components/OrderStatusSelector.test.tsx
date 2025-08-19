@@ -1,38 +1,38 @@
 import { test, expect, describe } from 'vitest';
-import { findByText, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import OrderStatusSelector from '../../src/components/OrderStatusSelector';
 import { Theme } from '@radix-ui/themes';
 import userEvent from '@testing-library/user-event';
 
 describe('OrderStatusSelector', () => {
-	test('should render New as the default value', () => {
+	const renderComponent = () => {
 		render(
 			<Theme>
 				<OrderStatusSelector onChange={vi.fn()} />
 			</Theme>
 		);
 
-		const button = screen.getByRole('combobox');
-		expect(button).toHaveTextContent(/new/i);
+		return {
+			trigger: screen.getByRole('combobox'),
+			getOptions: () => screen.findAllByRole('option'),
+		};
+	};
+
+	test('should render New as the default value', async () => {
+		const { trigger } = renderComponent();
+		expect(trigger).toHaveTextContent(/new/i);
 	});
 
 	test('should render correct statuses', async () => {
-		render(
-			<Theme>
-				<OrderStatusSelector onChange={vi.fn()} />
-			</Theme>
-		);
-
+		const { trigger, getOptions } = renderComponent();
 		const user = userEvent.setup();
 
-		const button = screen.getByRole('combobox');
-		await user.click(button);
+		await user.click(trigger);
 
-		const options = await screen.findAllByRole('option');
+		const options = await getOptions();
+		const labels = options.map((option) => option.textContent);
 
 		expect(options).toHaveLength(3);
-
-		const labels = options.map((option) => option.textContent);
 		expect(labels).toEqual(['New', 'Processed', 'Fulfilled']);
 	});
 });
