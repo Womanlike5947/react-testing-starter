@@ -1,25 +1,17 @@
-import { http, HttpResponse } from 'msw';
-import { products } from './data';
+import { db } from './db';
 
 export const handlers = [
-	http.get('/categories', () => {
-		return HttpResponse.json([
-			{ id: 1, name: 'Electronics' },
-			{ id: 2, name: 'Beauty' },
-			{ id: 3, name: 'Gardening' },
-		]);
-	}),
+	// http.get('/products', () => {
+	// 	return HttpResponse.json(products);
+	// }),
 
-	http.get('/products', () => {
-		return HttpResponse.json(products);
-	}),
+	// http.get('/products/:id', ({ params }) => {
+	// 	const id = parseInt(params.id as string);
+	// 	const product = products.find((p) => p.id === id);
 
-	http.get('/products/:id', ({ params }) => {
-		const id = parseInt(params.id as string);
-		const product = products.find((p) => p.id === id);
+	// 	if (!product) return new HttpResponse(null, { status: 404 });
 
-		if (!product) return new HttpResponse(null, { status: 404 });
-
-		return HttpResponse.json(product);
-	}),
+	// 	return HttpResponse.json(product);
+	// }),
+	...db.product.toHandlers('rest'), //Returns an array of request handlers for all HTTP methods (GET, POST, PUT, DELETE, PATCH)
 ];
