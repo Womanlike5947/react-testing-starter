@@ -7,9 +7,6 @@ import { server } from '../mocks/server';
 import { db } from '../mocks/db';
 
 describe('ProductDetail', () => {
-	// type Product = { id: number; name: string; price: number };
-	// const products: Product[] = [];
-
 	let productId: number;
 
 	beforeAll(() => {
@@ -52,5 +49,12 @@ describe('ProductDetail', () => {
 
 		const error = await screen.findByText(/invalid/i);
 		expect(error).toBeInTheDocument();
+	});
+
+	test('should render an error message when there is an error', async () => {
+		server.use(http.get('/products/1', () => HttpResponse.error()));
+		render(<ProductDetail productId={1} />);
+
+		expect(await screen.findByText(/error/i)).toBeInTheDocument();
 	});
 });
