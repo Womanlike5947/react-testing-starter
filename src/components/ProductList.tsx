@@ -8,7 +8,7 @@ const ProductList = () => {
 		error,
 		isLoading,
 	} = useQuery<Product[], Error>({
-		queryKey: ['prodicts'],
+		queryKey: ['products'],
 		queryFn: () => axios.get<Product[]>('/products').then((res) => res.data),
 	});
 
