@@ -13,7 +13,7 @@ export const db = factory({
 		id: primaryKey(faker.number.int),
 		name: faker.commerce.productName,
 		price: () => faker.number.int({ min: 1, max: 100 }),
-		categoryId: faker.number.int, // TODO - this needs a relationship with category, revisit and add relationship
+		categoryId: faker.number.int,
 		category: oneOf('category'),
 	},
 });
