@@ -62,4 +62,28 @@ describe('BrowseProductsPage', () => {
 			screen.queryByRole('progressbar', { name: /products/i })
 		);
 	});
+
+	test('should not render an error if categories cannot be fetched', () => {
+		server.use(http.get('/categories', () => HttpResponse.error()));
+
+		renderComponent();
+
+		expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
+
+		expect(
+			screen.queryByRole('combobox', { name: /category/i })
+		).not.toBeInTheDocument();
+	});
+
+	test('should render an error if products cannot be fetched', async () => {
+		server.use(http.get('/categories', () => HttpResponse.error()));
+
+		renderComponent();
+
+		expect(await screen.findByText(/error/i)).toBeInTheDocument();
+
+		// expect(
+		// 	screen.queryByRole('combobox', { name: /category/i })
+		// ).not.toBeInTheDocument();
+	});
 });
