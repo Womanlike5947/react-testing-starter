@@ -16,13 +16,17 @@ describe('BrowseProductsPage', () => {
 	const products: Product[] = [];
 
 	beforeAll(() => {
-		[1, 2].forEach((item) => {
-			categories.push(db.category.create({ name: 'Category' + item }));
+		[1, 2].forEach(() => {
+			const category = db.category.create();
+			categories.push(category);
+			// Create two products for each category
+			[1, 2].forEach(() => {
+				products.push(db.product.create({ categoryId: category.id }));
+			});
 		});
 
-		[1, 2].forEach(() => {
-			products.push(db.product.create());
-		});
+		// [1, 2].forEach(() => {
+		// });
 	});
 
 	afterAll(() => {
@@ -48,6 +52,7 @@ describe('BrowseProductsPage', () => {
 			getCategoriesSkeleton: () =>
 				screen.queryByRole('progressbar', { name: /categories/i }),
 			getCategoriesCombobox: () => screen.queryByRole('combobox'),
+			user: userEvent.setup(),
 		};
 	};
 
@@ -98,14 +103,14 @@ describe('BrowseProductsPage', () => {
 	});
 
 	test('should render categories', async () => {
-		const { getCategoriesSkeleton, getCategoriesCombobox } = renderComponent();
+		const { getCategoriesSkeleton, getCategoriesCombobox, user } =
+			renderComponent();
 
 		await waitForElementToBeRemoved(getCategoriesSkeleton);
 
 		const combobox = getCategoriesCombobox();
 		expect(combobox).toBeInTheDocument();
 
-		const user = userEvent.setup();
 		await user.click(combobox!);
 		// 👆🏼 combobox errors because 'queryByRole' could return a null value but we know there is a combobox, so putting ! at the end states it will be there
 
@@ -123,6 +128,57 @@ describe('BrowseProductsPage', () => {
 
 		await waitForElementToBeRemoved(getProductsSkeleton);
 
+		products.forEach((product) => {
+			expect(screen.getByText(product.name)).toBeInTheDocument();
+		});
+	});
+
+	test('should render products by category', async () => {
+		const { getCategoriesSkeleton, getCategoriesCombobox, user } =
+			renderComponent();
+
+		// Arrange
+		await waitForElementToBeRemoved(getCategoriesSkeleton);
+		const combobox = getCategoriesCombobox();
+		await user.click(combobox!);
+
+		// Act
+		const selectedCategory = categories[0];
+		const option = screen.queryByRole('option', { name: selectedCategory.name });
+		await user.click(option!);
+
+		// Assert
+		const products = db.product.findMany({
+			where: {
+				categoryId: { equals: selectedCategory.id },
+			},
+		});
+		const rows = screen.queryAllByRole('row');
+		const dataRows = rows.slice(1);
+		expect(dataRows).toHaveLength(products.length);
+		products.forEach((product) => {
+			expect(screen.getByText(product.name)).toBeInTheDocument();
+		});
+	});
+
+	test('should render all products if All category is selected', async () => {
+		const { getCategoriesSkeleton, getCategoriesCombobox, user } =
+			renderComponent();
+
+		// Arrange
+		await waitForElementToBeRemoved(getCategoriesSkeleton);
+		const combobox = getCategoriesCombobox();
+		await user.click(combobox!);
+
+		// Act
+		const option = screen.queryByRole('option', { name: /all/i });
+		await user.click(option!);
+
+		// Assert
+		const products = db.product.getAll();
+		const rows = screen.queryAllByRole('row');
+		const dataRows = rows.slice(1);
+		expect(dataRows).toHaveLength(products.length);
 		products.forEach((product) => {
 			expect(screen.getByText(product.name)).toBeInTheDocument();
 		});
