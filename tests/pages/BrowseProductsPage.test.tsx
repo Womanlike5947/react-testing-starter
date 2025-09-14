@@ -81,9 +81,5 @@ describe('BrowseProductsPage', () => {
 		renderComponent();
 
 		expect(await screen.findByText(/error/i)).toBeInTheDocument();
-
-		// expect(
-		// 	screen.queryByRole('combobox', { name: /category/i })
-		// ).not.toBeInTheDocument();
 	});
 });
