@@ -14,4 +14,5 @@ export const handlers = [
 	// 	return HttpResponse.json(product);
 	// }),
 	...db.product.toHandlers('rest'), //Returns an array of request handlers for all HTTP methods (GET, POST, PUT, DELETE, PATCH)
+	...db.category.toHandlers('rest'), //Returns an array of request handlers for all HTTP methods (GET, POST, PUT, DELETE, PATCH)
 ];
