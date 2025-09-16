@@ -4,12 +4,11 @@ import {
 	waitForElementToBeRemoved,
 } from '@testing-library/react';
 import BrowseProducts from '../../src/pages/BrowseProductsPage';
-import { Theme } from '@radix-ui/themes';
 import userEvent from '@testing-library/user-event';
 import { db, getProductsByCategory } from '../mocks/db';
 import { Category, Product } from '../../src/entities';
-import { CartProvider } from '../../src/providers/CartProvider';
 import { simulateDelay, simulateError } from '../utils';
+import AllProviders from '../AllProviders';
 
 describe('BrowseProductsPage', () => {
 	const categories: Category[] = [];
@@ -135,13 +134,7 @@ describe('BrowseProductsPage', () => {
 });
 
 const renderComponent = () => {
-	render(
-		<CartProvider>
-			<Theme>
-				<BrowseProducts />
-			</Theme>
-		</CartProvider>
-	);
+	render(<BrowseProducts />, { wrapper: AllProviders });
 
 	// All of these have been moved into renderComponent so they usable to each other.
 	const user = userEvent.setup();
