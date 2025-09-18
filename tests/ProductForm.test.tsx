@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { render, screen } from '@testing-library/react';
-import { describe } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import ProductForm from '../src/components/ProductForm';
 import { Category, Product } from '../src/entities';
 import AllProviders from './AllProviders';
@@ -7,58 +10,169 @@ import { db } from './mocks/db';
 
 describe('ProductForm', () => {
 	let category: Category;
-	let product: Product;
 
 	beforeAll(() => {
 		category = db.category.create();
-		product = db.product.create({ categoryId: category.id });
 	});
 
 	afterAll(() => {
-		db.category.delete({ where: { id: { equals: category.id } } });
-		db.product.delete({ where: { id: { equals: product.id } } });
+		db.category.delete({
+			where: { id: { equals: category.id } },
+		});
 	});
 
-	test('should render form fields', async () => {
-		const { getInputs, waitForFormToLoad } = renderComponent();
+	const renderComponent = (product?: Product) => {
+		render(<ProductForm product={product} onSubmit={vi.fn()} />, {
+			wrapper: AllProviders,
+		});
 
-		// INFO could also use: await screen.findByRole('form');)
-		await waitForFormToLoad();
+		return {
+			expectErrorToBeInTheDocument: (errorMessage: RegExp) => {
+				const error = screen.getByRole('alert');
+				expect(error).toBeInTheDocument();
+				expect(error).toHaveTextContent(errorMessage);
+			},
 
-		const inputs = getInputs();
+			waitForFormToLoad: async () => {
+				await screen.findByRole('form');
 
-		expect(inputs.nameInput).toBeInTheDocument();
-		expect(inputs.priceInput).toBeInTheDocument();
+				const nameInput = screen.getByPlaceholderText(/name/i);
+				const priceInput = screen.getByPlaceholderText(/price/i);
+				const categoryInput = screen.getByRole('combobox', {
+					name: /category/i,
+				});
+				const submitButton = screen.getByRole('button');
 
-		expect(inputs.categoryInput).toBeInTheDocument();
-	});
+				type FormData = {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					[K in keyof Product]: any;
+				};
 
-	test('should populate form fields when editing a product', async () => {
-		const { getInputs, waitForFormToLoad } = renderComponent(product);
+				const validData: FormData = {
+					id: 1,
+					name: 'a',
+					price: 1,
+					categoryId: 1,
+				};
 
-		await waitForFormToLoad();
+				const fill = async (product: FormData) => {
+					const user = userEvent.setup();
 
-		const { nameInput, priceInput, categoryInput } = getInputs();
+					if (product.name !== undefined) await user.type(nameInput, product.name);
 
-		expect(nameInput).toHaveValue(product.name);
-		expect(priceInput).toHaveValue(product.price.toString());
-		expect(categoryInput).toHaveTextContent(category.name);
-	});
-});
+					if (product.price !== undefined)
+						await user.type(priceInput, product.price.toString());
 
-const renderComponent = (product?: Product) => {
-	render(<ProductForm product={product} onSubmit={vi.fn()} />, {
-		wrapper: AllProviders,
-	});
+					await user.click(categoryInput);
+					const options = screen.getAllByRole('option');
+					await user.click(options[0]);
+					await user.click(submitButton);
+				};
 
-	return {
-		getInputs: () => {
-			return {
-				nameInput: screen.getByPlaceholderText(/name/i),
-				priceInput: screen.getByPlaceholderText(/price/i),
-				categoryInput: screen.getByRole('combobox', { name: /category/i }),
-			};
-		},
-		waitForFormToLoad: () => screen.findByRole('form'),
+				return {
+					nameInput,
+					priceInput,
+					categoryInput,
+					submitButton,
+					fill,
+					validData,
+				};
+			},
+		};
 	};
-};
+
+	it('should render form fields', async () => {
+		const { waitForFormToLoad } = renderComponent();
+
+		const { nameInput, priceInput, categoryInput } = await waitForFormToLoad();
+
+		expect(nameInput).toBeInTheDocument();
+		expect(priceInput).toBeInTheDocument();
+		expect(categoryInput).toBeInTheDocument();
+	});
+
+	it('should populate form fields when editing a product', async () => {
+		const product: Product = {
+			id: 1,
+			name: 'Bread',
+			price: 10,
+			categoryId: category.id,
+		};
+
+		const { waitForFormToLoad } = renderComponent(product);
+
+		const inputs = await waitForFormToLoad();
+
+		expect(inputs.nameInput).toHaveValue(product.name);
+		expect(inputs.priceInput).toHaveValue(product.price.toString());
+		expect(inputs.categoryInput).toHaveTextContent(category.name);
+	});
+
+	it('should put focus on the name field', async () => {
+		const { waitForFormToLoad } = renderComponent();
+
+		const { nameInput } = await waitForFormToLoad();
+		expect(nameInput).toHaveFocus();
+	});
+
+	it.each([
+		{
+			scenario: 'missing',
+			errorMessage: /required/i,
+		},
+		{
+			scenario: 'longer than 255 characters',
+			name: 'a'.repeat(256),
+			errorMessage: /255/,
+		},
+	])(
+		'should display an error if name is $scenario',
+		async ({ name, errorMessage }) => {
+			const { waitForFormToLoad, expectErrorToBeInTheDocument } =
+				renderComponent();
+
+			const form = await waitForFormToLoad();
+			await form.fill({ ...form.validData, name });
+
+			expectErrorToBeInTheDocument(errorMessage);
+		}
+	);
+
+	it.each([
+		{
+			scenario: 'missing',
+			errorMessage: /required/i,
+		},
+		{
+			scenario: '0',
+			price: 0,
+			errorMessage: /1/,
+		},
+		{
+			scenario: 'negative',
+			price: -1,
+			errorMessage: /1/,
+		},
+		{
+			scenario: 'greater than 1000',
+			price: 1001,
+			errorMessage: /1000/,
+		},
+		{
+			scenario: 'not a number',
+			price: 'a',
+			errorMessage: /required/,
+		},
+	])(
+		'should display an error if price is $scenario',
+		async ({ price, errorMessage }) => {
+			const { waitForFormToLoad, expectErrorToBeInTheDocument } =
+				renderComponent();
+
+			const form = await waitForFormToLoad();
+			await form.fill({ ...form.validData, price });
+
+			expectErrorToBeInTheDocument(errorMessage);
+		}
+	);
+});

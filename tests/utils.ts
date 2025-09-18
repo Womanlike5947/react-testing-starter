@@ -1,4 +1,4 @@
-import { http, delay, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { server } from './mocks/server';
 
 export const simulateDelay = (endpoint: string) => {
