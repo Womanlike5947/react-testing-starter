@@ -63,6 +63,8 @@ describe('ProductForm', () => {
 					if (product.price !== undefined)
 						await user.type(priceInput, product.price.toString());
 
+					await user.tab();
+
 					await user.click(categoryInput);
 					const options = screen.getAllByRole('option');
 					await user.click(options[0]);
@@ -81,7 +83,7 @@ describe('ProductForm', () => {
 		};
 	};
 
-	it('should render form fields', async () => {
+	test('should render form fields', async () => {
 		const { waitForFormToLoad } = renderComponent();
 
 		const { nameInput, priceInput, categoryInput } = await waitForFormToLoad();
@@ -91,7 +93,7 @@ describe('ProductForm', () => {
 		expect(categoryInput).toBeInTheDocument();
 	});
 
-	it('should populate form fields when editing a product', async () => {
+	test('should populate form fields when editing a product', async () => {
 		const product: Product = {
 			id: 1,
 			name: 'Bread',
@@ -108,14 +110,14 @@ describe('ProductForm', () => {
 		expect(inputs.categoryInput).toHaveTextContent(category.name);
 	});
 
-	it('should put focus on the name field', async () => {
+	test('should put focus on the name field', async () => {
 		const { waitForFormToLoad } = renderComponent();
 
 		const { nameInput } = await waitForFormToLoad();
 		expect(nameInput).toHaveFocus();
 	});
 
-	it.each([
+	test.each([
 		{
 			scenario: 'missing',
 			errorMessage: /required/i,
@@ -138,7 +140,7 @@ describe('ProductForm', () => {
 		}
 	);
 
-	it.each([
+	test.each([
 		{
 			scenario: 'missing',
 			errorMessage: /required/i,
