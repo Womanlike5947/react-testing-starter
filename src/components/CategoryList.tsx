@@ -9,6 +9,7 @@ function CategoryList() {
 	const error = useAppSelector((state) => state.category.error);
 
 	useEffect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		dispatch(fetchCategories());
 	}, [dispatch]);
 
@@ -21,7 +22,7 @@ function CategoryList() {
 				<div>Loading...</div>
 			) : (
 				<ul>
-					{categories!.map((category) => (
+					{categories.map((category) => (
 						<li key={category.id}>{category.name}</li>
 					))}
 				</ul>
