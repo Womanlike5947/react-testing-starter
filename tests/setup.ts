@@ -14,6 +14,8 @@ afterAll(() => {
 	server.close();
 });
 
+vi.mock('@auth0/auth0-react');
+
 /** Stops the ResizeObserver error displaying */
 global.ResizeObserver = ResizeObserver;
 
