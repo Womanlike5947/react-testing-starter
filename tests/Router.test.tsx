@@ -1,26 +1,23 @@
-import { render, screen } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { screen } from '@testing-library/react';
+
 import { describe } from 'vitest';
-import routes from '../src/routes';
+import { navigateTo } from './utils';
 
 describe('Router', () => {
-	test('should render the home page for /', () => {
-		// This simulated the actual routes because routes can only be used in a browser component
-		const router = createMemoryRouter(routes, { initialEntries: ['/'] });
+	test.each([
+		{
+			scenario: 'home',
+			title: /home/i,
+			path: '/',
+		},
+		{
+			scenario: 'products',
+			title: /products/i,
+			path: '/products',
+		},
+	])('should render the $scenario page for $path', ({ title, path }) => {
+		navigateTo(path);
 
-		render(<RouterProvider router={router} />);
-
-		expect(screen.getByRole('heading', { name: /home/i })).toBeInTheDocument();
-	});
-
-	test('should render the products page for products', () => {
-		// This simulated the actual routes because routes can only be used in a browser component
-		const router = createMemoryRouter(routes, { initialEntries: ['/products'] });
-
-		render(<RouterProvider router={router} />);
-
-		expect(
-			screen.getByRole('heading', { name: /products/i })
-		).toBeInTheDocument();
+		expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
 	});
 });
